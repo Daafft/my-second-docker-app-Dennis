@@ -9,7 +9,7 @@ export default async function taskJob(job: Job<QueueJobPayload>) {
     let client: PoolClient | undefined;
 
     try {
-        client = await postgres.connect();
+        const client = await postgres.connect();
 
         switch (operation) {
             case 'CREATE':
