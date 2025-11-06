@@ -13,6 +13,21 @@ export interface TaskCreateDTO {
     due_at?: string;
 }
 
+export type TaskJobUpdatePayload = {
+    id: number;
+    title?: string;
+    description?: string | null;
+    status?: string;
+    due_at?: string | null;
+};
+
+export type TaskJobPayload = {
+    operation: 'CREATE' | 'UPDATE' | 'DELETE';
+    create?: TaskCreateDTO;
+    update?: TaskJobUpdatePayload;
+    delete?: { id: number };
+};
+
 export interface TaskUpdateDTO {
     title?: string;
     description?: string;

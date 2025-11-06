@@ -1,6 +1,6 @@
 
 import type { Job } from 'bullmq';
-import { Task, TaskJobPayload, TaskCreateDTO, TaskJobUpdatePayload } from '../types/task.type.js';
+import { Task, TaskJobPayload, TaskCreateDTO, TaskJobUpdatePayload, TaskUpdateDTO, QueueJobPayload } from '../types/task.type.js';
 import { postgres } from '../postgres.js';
 import { PoolClient } from 'pg';
 
