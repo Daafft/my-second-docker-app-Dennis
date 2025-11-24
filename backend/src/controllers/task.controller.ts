@@ -1,81 +1,48 @@
-import { JsonController, Get, Post, Put, Delete, Param, Body, HttpCode } from 'routing-controllers';
-import { TaskCreateDTO, TaskUpdateDTO } from '../types/task.js';
-import { TaskRepository } from '../repositories/task.repository.js';
+import {Body, Delete, Get, JsonController, Param, Post, Put} from 'routing-controllers';
+import {tasksQueue} from "../queues/tasks.queue.js";
+import {TaskRepository} from "../repositories/TaskRepository.js";
+import {CreateTaskDTO, TaskID, UpdateTaskDTO} from "../types/task.js";
 
-const taskRepository = new TaskRepository();
-
-
-function isInvalidTaskId(id: number): boolean {
-    return isNaN(id) || id === undefined || id === null || id <= 0 || !Number.isInteger(id);
-}
-
-@JsonController()
+@JsonController('/task')
 export class TaskController {
-
-    @Get('/tasks')
-    public async getTasks() {
-        return taskRepository.findAll();
+  @Get('/:id')
+  async get(@Param('id') id: TaskID) {
+    const numericId = Number(id as unknown as string);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      throw new Error('Invalid ID');
     }
 
-    @Get('/task/:id')
-    public async getTaskById(@Param('id') id: number) {
-        if (isInvalidTaskId(id)) {
-            throw { httpCode: 400, message: 'Invalid task ID format. Must be a positive integer.' };
-        }
+    return TaskRepository.findById(numericId as TaskID)
+  }
 
-        const task = await taskRepository.findById(id);
+  @Post('/')
+  async post(@Body() task: CreateTaskDTO) {
+    void tasksQueue.add('createTask', task);
 
-        if (!task) {
-            throw { httpCode: 404, message: `Task with ID ${id} not found.` };
-        }
-        return task;
+    return null
+  }
+
+  @Put('/:id')
+  async put(@Param('id') id: TaskID, @Body() task: UpdateTaskDTO) {
+    const numericId = Number(id as unknown as string);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      throw new Error('Invalid ID');
     }
 
-    @Post('/task')
-    @HttpCode(202)
-    public async createTask(@Body() data: TaskCreateDTO) {
-        if (!data.title || data.title.length === 0 || data.title.length > 200) {
-            throw { httpCode: 400, message: 'Title is required and must be between 1 and 200 characters.' };
-        }
+    void tasksQueue.add('updateTask', {id: numericId, ...task});
 
-        await taskRepository.createJob(data);
+    return null
+  }
 
-        return {
-            message: 'Task creation request accepted and queued for processing.',
-            job: { operation: 'CREATE' },
-        };
+  @Delete('/:id')
+  async delete(@Param('id') id: TaskID) {
+    const numericId = Number(id as unknown as string);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      throw new Error('Invalid ID');
     }
 
-    @Put('/task/:id')
-    @HttpCode(202)
-    public async updateTask(@Param('id') id: number, @Body() data: TaskUpdateDTO) {
-        if (isInvalidTaskId(id)) {
-            throw { httpCode: 400, message: 'Invalid task ID format. Must be a positive integer.' };
-        }
-        if (Object.keys(data).length === 0) {
-             throw { httpCode: 400, message: 'No update data provided in the request body.' };
-        }
+    void tasksQueue.add('deleteTask', {id: numericId});
 
-        await taskRepository.updateJob(id, data);
-
-        return {
-            message: `Task ID ${id} update request accepted and queued for processing.`,
-            job: { operation: 'UPDATE', taskId: id },
-        };
-    }
-
-    @Delete('/task/:id')
-    @HttpCode(202)
-    public async deleteTask(@Param('id') id: number) {
-        if (isInvalidTaskId(id)) {
-            throw { httpCode: 400, message: 'Invalid task ID format. Must be a positive integer.' };
-        }
-
-        await taskRepository.deleteJob(id);
-
-        return {
-            message: `Task ID ${id} deletion request accepted and queued for processing.`,
-            job: { operation: 'DELETE', taskId: id },
-        };
-    }
+    return null
+  }
 }
