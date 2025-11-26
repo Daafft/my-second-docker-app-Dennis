@@ -1,7 +1,7 @@
 import {Body, Delete, Get, JsonController, Param, Post, Put} from 'routing-controllers';
 import {tasksQueue} from "../queues/tasks.queue.js";
-import {TaskRepository} from "../repositories/TaskRepository.js";
-import {CreateTaskDTO, TaskID, UpdateTaskDTO} from "../types/task.js";
+import {TaskRepository} from "../repositories/task.repository.js";
+import {TaskCreateDTO, TaskID, TaskUpdateDTO} from "../types/task.js";
 
 @JsonController('/task')
 export class TaskController {
@@ -16,14 +16,14 @@ export class TaskController {
   }
 
   @Post('/')
-  async post(@Body() task: CreateTaskDTO) {
+  async post(@Body() task: TaskCreateDTO) {
     void tasksQueue.add('createTask', task);
 
     return null
   }
 
   @Put('/:id')
-  async put(@Param('id') id: TaskID, @Body() task: UpdateTaskDTO) {
+  async put(@Param('id') id: TaskID, @Body() task: TaskUpdateDTO) {
     const numericId = Number(id as unknown as string);
     if (!Number.isInteger(numericId) || numericId <= 0) {
       throw new Error('Invalid ID');

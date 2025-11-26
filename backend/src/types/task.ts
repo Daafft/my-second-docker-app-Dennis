@@ -30,3 +30,5 @@ export interface TaskJobPayload {
     update?: TaskJobUpdatePayload;
     delete?: { id: number };
 }
+
+export type TaskID = number;

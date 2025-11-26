@@ -5,7 +5,7 @@ import { PoolClient } from 'pg';
 
 export class TaskRepository {
 
-    public async findAll(): Promise<Task[]> {
+    public static async findAll(): Promise<Task[]> {
         let client: PoolClient | undefined;
         try {
             client = await postgres.connect();
@@ -20,7 +20,7 @@ export class TaskRepository {
     }
 
 
-    public async findById(id: number): Promise<Task | null> {
+    public static async findById(id: number): Promise<Task | null> {
         let client: PoolClient | undefined;
         try {
             client = await postgres.connect();
@@ -38,19 +38,19 @@ export class TaskRepository {
         }
     }
 
-    public async createJob(data: TaskCreateDTO): Promise<void> {
+    public static async createJob(data: TaskCreateDTO): Promise<void> {
         const jobPayload: TaskJobPayload = { operation: 'CREATE', create: data };
         await tasksQueue.add('createTaskJob', jobPayload);
     }
 
-    public async updateJob(id: number, data: TaskUpdateDTO): Promise<void> {
+    public static async updateJob(id: number, data: TaskUpdateDTO): Promise<void> {
         const updateData: TaskJobUpdatePayload = { id: id, ...data };
         const jobPayload: TaskJobPayload = { operation: 'UPDATE', update: updateData };
         await tasksQueue.add('updateTaskJob', jobPayload);
     }
 
 
-    public async deleteJob(id: number): Promise<void> {
+    public static async deleteJob(id: number): Promise<void> {
         const jobPayload: TaskJobPayload = { operation: 'DELETE', delete: { id: id } };
         await tasksQueue.add('deleteTaskJob', jobPayload);
     }

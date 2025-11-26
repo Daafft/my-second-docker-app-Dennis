@@ -1,5 +1,5 @@
 import {Get, JsonController} from "routing-controllers";
-import {TaskRepository} from "../repositories/TaskRepository.js";
+import {TaskRepository} from "../repositories/task.repository.js";
 
 @JsonController('/tasks')
 export class TasksController {
